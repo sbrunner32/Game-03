@@ -9,12 +9,15 @@ namespace GameArchitectureExample.Screens
         public PauseMenuScreen() : base("Paused")
         {
             var resumeGameMenuEntry = new MenuEntry("Resume Game");
+            var restartGameMenuEntry = new MenuEntry("Restart Game");
             var quitGameMenuEntry = new MenuEntry("Quit Game");
 
             resumeGameMenuEntry.Selected += OnCancel;
+            restartGameMenuEntry.Selected += RestartGameMenuEntrySelected;
             quitGameMenuEntry.Selected += QuitGameMenuEntrySelected;
 
             MenuEntries.Add(resumeGameMenuEntry);
+            MenuEntries.Add(restartGameMenuEntry);
             MenuEntries.Add(quitGameMenuEntry);
         }
 
@@ -32,6 +35,11 @@ namespace GameArchitectureExample.Screens
         private void ConfirmQuitMessageBoxAccepted(object sender, PlayerIndexEventArgs e)
         {
             LoadingScreen.Load(ScreenManager, false, null, new BackgroundScreen(), new MainMenuScreen());
+        }
+
+        private void RestartGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
+        {
+            LoadingScreen.Load(ScreenManager, false, null, new BackgroundScreen(), new GameplayScreen());
         }
     }
 }

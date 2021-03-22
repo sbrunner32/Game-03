@@ -25,6 +25,12 @@
 /processorParam:TextureFormat=Color
 /build:background.png
 
+#begin bensound-dreams.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:bensound-dreams.mp3
+
 #begin blank.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -36,6 +42,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:blank.png
+
+#begin coins.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:coins.png
 
 #begin gamefont.spritefont
 /importer:FontDescriptionImporter
@@ -56,6 +74,12 @@
 /processorParam:TextureFormat=Color
 /build:gradient.png
 
+#begin ICanTellWav.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:ICanTellWav.wav
+
 #begin liftoff_of_smap.mp4
 /importer:H264Importer
 /processor:VideoProcessor
@@ -68,6 +92,30 @@
 /processorParam:TextureFormat=Compressed
 /build:menufont.spritefont
 
+#begin ringsmith-001.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:ringsmith-001.png
+
+#begin SlimeBlobTall.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:SlimeBlobTall.png
+
 #begin splash.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -79,4 +127,9 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:splash.png
+
+#begin Tony_Maqaroni_Intro.mp4
+/importer:H264Importer
+/processor:VideoProcessor
+/build:Tony_Maqaroni_Intro.mp4
 

@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Timers;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameArchitectureExample.StateManagement;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 
 namespace GameArchitectureExample.Screens
 {
@@ -13,13 +17,29 @@ namespace GameArchitectureExample.Screens
     // put some more interesting gameplay in here!
     public class GameplayScreen : GameScreen
     {
+        private static System.Timers.Timer waitTimer;
+
         private ContentManager _content;
         private SpriteFont _gameFont;
 
-        private Vector2 _playerPosition = new Vector2(100, 100);
-        private Vector2 _enemyPosition = new Vector2(100, 100);
+        private SpriteBatch _spriteBatch;
+
+
+        private Vector2 _playerPosition = new Vector2(400, 400);
+        private Vector2 _coinPosition = new Vector2(200, 200);
 
         private readonly Random _random = new Random();
+
+        public List<CoinSprite> coinsList = new List<CoinSprite>();
+
+        private SlimeSprite slimeSprite;
+        private int coinsCount;
+
+        private SoundEffect coinPickup;
+        private string coinSoundName = "ICanTellWav";
+
+        private Song gameMusic;
+        private string gameMusicName = "bensound-dreams";
 
         private float _pauseAlpha;
         private readonly InputAction _pauseAction;
@@ -40,6 +60,26 @@ namespace GameArchitectureExample.Screens
             if (_content == null)
                 _content = new ContentManager(ScreenManager.Game.Services, "Content");
 
+            _spriteBatch = ScreenManager.SpriteBatch;
+
+            if(coinsList.Count == 0 )
+            {
+                CoinSprite temp = new CoinSprite(_coinPosition);
+                coinsList.Add(temp);
+            }         
+
+            coinsCount = 0;
+            slimeSprite = new SlimeSprite();
+
+            // Loads content for gameplay elements
+            foreach (var coin in coinsList) coin.LoadContent(_content);
+            slimeSprite.LoadContent(_content);
+            coinPickup = _content.Load<SoundEffect>(coinSoundName);
+            gameMusic = _content.Load<Song>(gameMusicName);
+            MediaPlayer.IsRepeating = true;
+            float roundedMusicVolume = (float)(MediaPlayer.Volume / 4.0);
+            MediaPlayer.Volume = roundedMusicVolume;
+            MediaPlayer.Play(gameMusic);
             _gameFont = _content.Load<SpriteFont>("gamefont");
 
             // A real game would probably have more content than this sample, so
@@ -50,7 +90,7 @@ namespace GameArchitectureExample.Screens
             // once the load has finished, we use ResetElapsedTime to tell the game's
             // timing mechanism that we have just finished a very long frame, and that
             // it should not try to catch up.
-            ScreenManager.Game.ResetElapsedTime();
+            //ScreenManager.Game.ResetElapsedTime();
         }
 
 
@@ -69,6 +109,8 @@ namespace GameArchitectureExample.Screens
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
             base.Update(gameTime, otherScreenHasFocus, false);
+            System.Random rand = new System.Random();
+
 
             // Gradually fade in or out depending on whether we are covered by the pause screen.
             if (coveredByOtherScreen)
@@ -78,21 +120,62 @@ namespace GameArchitectureExample.Screens
 
             if (IsActive)
             {
-                // Apply some random jitter to make the enemy move around.
-                const float randomization = 10;
+                float t = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                Vector2 acceleration = new Vector2(0, 30);
+                bool addCoin = false;
+                List<CoinSprite> tempCoinsList = new List<CoinSprite>();
 
-                _enemyPosition.X += (float)(_random.NextDouble() - 0.5) * randomization;
-                _enemyPosition.Y += (float)(_random.NextDouble() - 0.5) * randomization;
+                foreach (var coin in coinsList)
+                {
+                    ///If the player touches a coin
+                    if (!coin.Collected && coin.Bounds.CollidesWith(slimeSprite.Bounds))
+                    {
+                        addCoin = true;
+                        coinsCount++;
+                        coin.Collected = true;
+                        coin.Warp();
+                        coinPickup.Play();
+                    }
+                    /// If the coin goes beneath the game window
+                    if (coin.Position.Y > Constants.GAME_HEIGHT)
+                    {
+                        Vector2 temp = new Vector2(coin.Position.X, 0);
+                        coin.Position = temp;
+                    }
+                    /// If the coin goes past the right boundary
+                    if (coin.Position.X > Constants.GAME_WIDTH)
+                    {
+                        Vector2 temp = new Vector2(0, coin.Position.Y);
+                        coin.Position = temp;
+                    }
+                    coin.Velocity += acceleration * t;
+                    coin.Position += t * coin.Velocity;
+                    /// Check to see if the player has gotten enough coins to win 
+                    if (coinsCount > 9)
+                    {
+                        //System.Windows.Forms.MessageBoxButtons buttons = System.Windows.Forms.MessageBoxButtons.YesNo;
+                        //System.Windows.Forms.DialogResult result;
+                        //result = MessageBox.Show("Congrats", "You Won!", (IEnumerable<string>)buttons);               
+                    }
 
-                // Apply a stabilizing force to stop the enemy moving off the screen.
-                var targetPosition = new Vector2(
-                    ScreenManager.GraphicsDevice.Viewport.Width / 2 - _gameFont.MeasureString("Insert Gameplay Here").X / 2,
-                    200);
+                    ///Adds a coin randomly in the game window
+                    if (addCoin)
+                    {
+                        CoinSprite tempCoin = new CoinSprite(
+                            new Vector2((float)rand.NextDouble() * Constants.GAME_WIDTH,
+                            (float)rand.NextDouble() * Constants.GAME_HEIGHT));
+                        tempCoin.LoadContent(_content);
+                        if (!(tempCoinsList == null))
+                            tempCoinsList.Add(tempCoin);
+                        addCoin = false;
+                    }
+                }
+                foreach (CoinSprite c in tempCoinsList)
+                {
+                    coinsList.Add(c);
+                }
+                tempCoinsList = new List<CoinSprite>();
 
-                _enemyPosition = Vector2.Lerp(_enemyPosition, targetPosition, 0.05f);
-
-                // This game isn't very fun! You could probably improve
-                // it by inserting something more interesting in this space :-)
             }
         }
 
@@ -103,7 +186,8 @@ namespace GameArchitectureExample.Screens
                 throw new ArgumentNullException(nameof(input));
 
             // Look up inputs for the active player profile.
-            int playerIndex = (int)ControllingPlayer.Value;
+            //int playerIndex = (int)ControllingPlayer.Value;
+            int playerIndex = 1;
 
             var keyboardState = input.CurrentKeyboardStates[playerIndex];
             var gamePadState = input.CurrentGamePadStates[playerIndex];
@@ -124,27 +208,15 @@ namespace GameArchitectureExample.Screens
                 // Otherwise move the player position.
                 var movement = Vector2.Zero;
 
-                if (keyboardState.IsKeyDown(Keys.Left))
-                    movement.X--;
 
-                if (keyboardState.IsKeyDown(Keys.Right))
-                    movement.X++;
+                if (keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W)) movement += slimeSprite.ApplyMovement(MovementDirection.Up);
+                if (keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S)) movement += slimeSprite.ApplyMovement(MovementDirection.Down);
+                if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A)) movement += slimeSprite.ApplyMovement(MovementDirection.Left);
+                if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D)) movement += slimeSprite.ApplyMovement(MovementDirection.Right);
 
-                if (keyboardState.IsKeyDown(Keys.Up))
-                    movement.Y--;
 
-                if (keyboardState.IsKeyDown(Keys.Down))
-                    movement.Y++;
-
-                var thumbstick = gamePadState.ThumbSticks.Left;
-
-                movement.X += thumbstick.X;
-                movement.Y -= thumbstick.Y;
-
-                if (movement.Length() > 1)
-                    movement.Normalize();
-
-                _playerPosition += movement * 8f;
+               
+                _playerPosition += movement;
             }
         }
 
@@ -158,10 +230,24 @@ namespace GameArchitectureExample.Screens
 
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(_gameFont, "// TODO", _playerPosition, Color.Green);
-            spriteBatch.DrawString(_gameFont, "Insert Gameplay Here",
-                                   _enemyPosition, Color.DarkRed);
+            foreach (var coin in coinsList)
+            {
+                coin.Draw(gameTime, spriteBatch);
 
+            }
+
+            slimeSprite.Draw(gameTime, spriteBatch);
+            //spriteBatch.DrawString(_gameFont, gameTime, new Vector2() )
+            spriteBatch.DrawString(_gameFont, $"Coin Count: {coinsCount}", new Vector2(2, 2), Color.Gold, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+            //spriteBatch.DrawString(_gameFont,  gameTime.ElapsedGameTime.TotalSeconds.ToString(), new Vector2(300, 2), Color.Gold, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+            if (coinsCount < 4)
+            {
+                spriteBatch.DrawString(_gameFont, $"Collect 10 Coins to Win", new Vector2(500, 2), Color.Gold, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+            }
+            if(coinsCount > 9)
+            {
+                spriteBatch.DrawString(_gameFont, $"Congrats you won", new Vector2(300, 2), Color.Gold, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+            }
             spriteBatch.End();
 
             // If the game is transitioning on or off, fade it out to black.
@@ -172,5 +258,7 @@ namespace GameArchitectureExample.Screens
                 ScreenManager.FadeBackBufferToBlack(alpha);
             }
         }
+
+       
     }
 }

@@ -1,0 +1,7 @@
+﻿Content/SlimeBlobTall.png - created by ZomBCool of OpenGameArt.org (https://opengameart.org/sites/default/files/blob_2_1.png) and released under the public domain
+
+Content/coins.png - created by puddin of OpenGameArt.org (https://opengameart.org/content/rotating-coin) and released under the public domain
+
+Content/ICanTellWav.wav - created Tony Maqaroni singing his own unlicensed song (https://www.youtube.com/watch?v=gfN5HlihWUA) and released under the public domain
+
+Content/bensound-dreams.mp3 - created by Benhamin Tissor of BenSound.com (https://www.bensound.com/royalty-free-music/track/dreams-chill-out) and released under the public domain
